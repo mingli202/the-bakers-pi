@@ -16,13 +16,15 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 
-COLOR_SENSOR_DATA_FILE = "color_sensor.csv"
+COLOR_SENSOR_DATA_FILE = "color_sensor_red.csv"
 
 
 def gaussian(x, values):
     "Return a gaussian function from the given values."
     sigma = stdev(values)
-    return (1 / (sigma * sqrt(2 * pi))) * e ** (-((x - mean(values)) ** 2) / (2 * sigma ** 2))
+    return (1 / (sigma * sqrt(2 * pi))) * e ** (
+        -((x - mean(values)) ** 2) / (2 * sigma**2)
+    )
 
 
 red, green, blue = [], [], []
@@ -36,7 +38,7 @@ with open(COLOR_SENSOR_DATA_FILE, "r") as f:
 
         ### RATIO METHOD ###
         denominator = r + g + b
-        
+
         red.append(r / denominator)
         green.append(g / denominator)
         blue.append(b / denominator)
