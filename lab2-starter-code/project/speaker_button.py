@@ -35,8 +35,6 @@ def play_sound_on_button_press():
             sleep(DELAY_SEC)
     except BaseException:  # capture all exceptions including KeyboardInterrupt (Ctrl-C)
         exit()
-    except BaseException:  # capture all exceptions including KeyboardInterrupt (Ctrl-C)
-        exit()
 
 
 if __name__=='__main__':
