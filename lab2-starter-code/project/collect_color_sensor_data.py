@@ -28,6 +28,8 @@ def collect_color_sensor_data():
         print("Touch sensor pressed")
         sleep(1)
         print("Starting to collect rgb color samples")
+        while not TOUCH_SENSOR.is_pressed():
+            r, g, b = COLOR_SENSOR.get_rgb()
     except BaseException:  # capture all exceptions including KeyboardInterrupt (Ctrl-C)
         pass
     finally:
