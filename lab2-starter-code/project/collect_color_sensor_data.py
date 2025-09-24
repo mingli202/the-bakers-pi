@@ -8,12 +8,12 @@ It must be run on the robot.
 # Add your imports here, if any
 from utils.brick import EV3ColorSensor, wait_ready_sensors, TouchSensor
 
-
+DELAY_SEC = 0.01  # seconds of delay between measurements
 COLOR_SENSOR_DATA_FILE = "../data_analysis/color_sensor.csv"
 
 # complete this based on your hardware setup
-_ = EV3ColorSensor(...)
-_ = TouchSensor(...)
+COLOR_SENSOR = EV3ColorSensor(1)
+TOUCH_SENSOR = TouchSensor(2)
 
 wait_ready_sensors(True) # Input True to see what the robot is trying to initialize! False to be silent.
 
