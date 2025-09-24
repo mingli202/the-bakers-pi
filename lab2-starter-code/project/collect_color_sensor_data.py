@@ -22,6 +22,8 @@ def collect_color_sensor_data():
     "Collect color sensor data."
     try:
         output_file = open(COLOR_SENSOR_DATA_FILE, "w")
+        while not TOUCH_SENSOR.is_pressed():
+            pass
     except BaseException:  # capture all exceptions including KeyboardInterrupt (Ctrl-C)
         pass
     
