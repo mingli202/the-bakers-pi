@@ -43,6 +43,5 @@ def collect_color_sensor_data():
         exit()
     
 
-
 if __name__ == "__main__":
     collect_color_sensor_data()
