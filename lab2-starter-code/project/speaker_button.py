@@ -5,6 +5,7 @@ Module to play sounds when the touch sensor is pressed.
 This file must be run on the robot.
 """
  
+from time import sleep
 from utils import sound
 from utils.brick import TouchSensor, wait_ready_sensors
 
@@ -29,6 +30,11 @@ def play_sound_on_button_press():
         while True:
             if TOUCH_SENSOR.is_pressed():
                 play_sound()
+                while TOUCH_SENSOR.is_pressed():
+                    sleep(DELAY_SEC)
+            sleep(DELAY_SEC)
+    except BaseException:  # capture all exceptions including KeyboardInterrupt (Ctrl-C)
+        exit()
     except BaseException:  # capture all exceptions including KeyboardInterrupt (Ctrl-C)
         exit()
 
