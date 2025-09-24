@@ -20,7 +20,11 @@ wait_ready_sensors(True) # Input True to see what the robot is trying to initial
 
 def collect_color_sensor_data():
     "Collect color sensor data."
-    ...
+    try:
+        output_file = open(COLOR_SENSOR_DATA_FILE, "w")
+    except BaseException:  # capture all exceptions including KeyboardInterrupt (Ctrl-C)
+        pass
+    
 
 
 if __name__ == "__main__":
