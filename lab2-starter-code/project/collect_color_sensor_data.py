@@ -20,7 +20,7 @@ wait_ready_sensors(True) # Input True to see what the robot is trying to initial
 
 
 def collect_color_sensor_data():
-    "Collect color sensor data."
+    print("Collect color sensor data.")
     try:
         output_file = open(COLOR_SENSOR_DATA_FILE, "w")
         while True:
