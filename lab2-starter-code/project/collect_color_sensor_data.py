@@ -26,7 +26,7 @@ def collect_color_sensor_data():
         while True:
             if not TOUCH_SENSOR.is_pressed():
                 continue
-            print("Touch sensor pressed, collecting data...")
+            print("Touch sensor pressed, collecting rgb data...")
             r, g, b = COLOR_SENSOR.get_rgb()
             if r is not None and g is not None and b is not None: # If None is given, then data collection failed that time
                 print(r, g, b)
