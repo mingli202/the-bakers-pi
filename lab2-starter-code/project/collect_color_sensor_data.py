@@ -30,6 +30,10 @@ def collect_color_sensor_data():
         print("Starting to collect rgb color samples")
         while not TOUCH_SENSOR.is_pressed():
             r, g, b = COLOR_SENSOR.get_rgb()
+            if r is not None and g is not None and b is not None: # If None is given, then data collection failed that time
+                print(r, g, b)
+                output_file.write(f"{r}, {g}, {b}\n")
+            sleep(DELAY_SEC)
     except BaseException:  # capture all exceptions including KeyboardInterrupt (Ctrl-C)
         pass
     finally:
