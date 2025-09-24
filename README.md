@@ -1,3 +1,3 @@
 # Master Bakers
 
-Our baker pi program, for amazing baking
+Our baker pi program, for amazing baking.
