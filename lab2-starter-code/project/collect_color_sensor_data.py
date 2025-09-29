@@ -18,6 +18,11 @@ TOUCH_SENSOR = TouchSensor(2)
 
 wait_ready_sensors(True) # Input True to see what the robot is trying to initialize! False to be silent.
 
+def filter_data(r, g, b):
+    if r is not None and g is not None and b is not None:
+        if r > 0 and g > 0 and b > 0:
+            return True
+    return False
 
 def collect_color_sensor_data():
     print("Collect color sensor data.")
@@ -30,8 +35,7 @@ def collect_color_sensor_data():
                 continue
             print("Touch sensor pressed, collecting rgb data...")
             r, g, b = COLOR_SENSOR.get_rgb()
-            if r is not None and g is not None and b is not None: # If None is given, then data collection failed that time
-
+            if filter_data(r, g, b): # If None is given, then data collection failed that time
                 print(r, g, b)
                 output.append(f"{r}, {g}, {b}")
             while TOUCH_SENSOR.is_pressed():
