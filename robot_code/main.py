@@ -39,17 +39,17 @@ def get_colour(sensor: EV3ColorSensor):
 
     # compute cosine similarity and pick best match
     best_name = "UNKNOWN"
-    best_score = -1.0
+    closest_dist = math.inf
     for name, (rr, gg, bb) in normalized_refs.items():
-        score = rn * rr + gn * gg + bn * bb
-        if score > best_score:
-            best_score = score
+        dist = math.sqrt((rn - rr) ** 2 + (gn - gg) ** 2 + (bn - bb) ** 2)
+        if dist > closest_dist:
+            closest_dist = dist
             best_name = name
 
     # threshold to avoid misclassifying ambiguous readings; tune 0.7-0.9
-    if best_score >= 0.8:
-        return best_name
-    return "UNKNOWN"
+    # if closest_dist >= 0.8:
+    return best_name
+    # return "UNKNOWN"
 
 
 # function that just loops and checks for inputs; exits when exception
