@@ -101,7 +101,7 @@ def bake_the_pi():
             elif colour == "BLUE":
                 C7.play()
                 C7.wait_done()
-            elif colour == "PINK":
+            elif colour == "YELLOW":
                 C8.play()
                 C8.wait_done()
             else:
