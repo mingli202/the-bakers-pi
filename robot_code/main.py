@@ -9,6 +9,20 @@ import math
 from project.utils.brick import EV3ColorSensor, reset_brick, wait_ready_sensors, TouchSensor
 from project.utils import sound
 
+# reference unit vectors (pink is approx red+blue)
+refs = {
+    "RED": (255.0, 0.0, 0.0),
+    "GREEN": (0.0, 255.0, 0.0),
+    "BLUE": (0.0, 0.0, 255.0),
+    "YELLOW": (255.0, 255.0, 0.0),
+}
+
+# normalize reference
+normalized_refs = {}
+for name, (rr, gg, bb) in refs.items():
+    d = math.sqrt(rr * rr + gg * gg + bb * bb)
+    normalized_refs[name] = (rr / d, gg / d, bb / d)
+
 
 def get_colour(sensor: EV3ColorSensor):
     r, g, b = sensor.get_rgb()
@@ -22,20 +36,6 @@ def get_colour(sensor: EV3ColorSensor):
     if denom == 0:
         return "UNKNOWN"
     rn, gn, bn = r / denom, g / denom, b / denom
-
-    # reference unit vectors (pink is approx red+blue)
-    refs = {
-        "RED": (1.0, 0.0, 0.0),
-        "GREEN": (0.0, 1.0, 0.0),
-        "BLUE": (0.0, 0.0, 1.0),
-        "PINK": (1.0, 0.0, 1.0),
-    }
-
-    # normalize reference
-    normalized_refs = {}
-    for name, (rr, gg, bb) in refs.items():
-        d = math.sqrt(rr * rr + gg * gg + bb * bb)
-        normalized_refs[name] = (rr / d, gg / d, bb / d)
 
     # compute cosine similarity and pick best match
     best_name = "UNKNOWN"
