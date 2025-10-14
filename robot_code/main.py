@@ -20,7 +20,7 @@ refs = {
 # normalize reference
 normalized_refs = {}
 for name, (rr, gg, bb) in refs.items():
-    d = math.sqrt(rr * rr + gg * gg + bb * bb)
+    d = rr + gg + bb
     normalized_refs[name] = (rr / d, gg / d, bb / d)
 
 
@@ -32,7 +32,7 @@ def get_colour(sensor: EV3ColorSensor):
         return "UNKNOWN"
 
     # UNIT-VECTOR / COSINE-SIMILARITY
-    denom = math.sqrt(r * r + g * g + b * b)
+    denom = r + g + b
     if denom == 0:
         return "UNKNOWN"
     rn, gn, bn = r / denom, g / denom, b / denom
