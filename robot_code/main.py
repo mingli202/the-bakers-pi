@@ -31,7 +31,7 @@ def get_colour(sensor: EV3ColorSensor):
         "PINK": (1.0, 0.0, 1.0),
     }
 
-    # normalize pink reference
+    # normalize reference
     normalized_refs = {}
     for name, (rr, gg, bb) in refs.items():
         d = math.sqrt(rr * rr + gg * gg + bb * bb)
