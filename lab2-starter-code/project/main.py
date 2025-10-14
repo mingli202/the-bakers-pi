@@ -6,8 +6,8 @@
 
 from time import sleep
 import math
-from project.utils.brick import EV3ColorSensor, reset_brick, wait_ready_sensors, TouchSensor
-from project.utils import sound
+from utils.brick import EV3ColorSensor, reset_brick, wait_ready_sensors, TouchSensor
+from utils import sound
 
 
 C5 = sound.Sound(duration=1.0, pitch="C5", volume=100)
@@ -65,20 +65,20 @@ def get_colour(sensor: EV3ColorSensor):
 
 # function that just loops and checks for inputs; exits when exception
 # each iter.:
-    # get touch sensor 1 (stop)
-    # get colour
-    # get touch sensor 2 (drum)
+# get touch sensor 1 (stop)
+# get colour
+# get touch sensor 2 (drum)
 
-    # if touch sensor 1 (stop): exit
-    # process colour => (RED, GREEN, BLUE, YELLOW)
-    # switch colour, case 1-4 => sound(note)
-    # if drum => rotate motor 180deg
+# if touch sensor 1 (stop): exit
+# process colour => (RED, GREEN, BLUE, YELLOW)
+# switch colour, case 1-4 => sound(note)
+# if drum => rotate motor 180deg
 
 wait_ready_sensors(True)
 print("Done waiting.")
 
+
 def bake_the_pi():
-    
     try:
         i = 0
         while not STOP_SENSOR.is_pressed():
@@ -87,11 +87,10 @@ def bake_the_pi():
         print("starting instrument")
         sleep(1)
 
-
-        while not STOP_SENSOR.is_pressed(): # exit when stop button is pressed
+        while not STOP_SENSOR.is_pressed():  # exit when stop button is pressed
             if DRUMB_SENSOR.is_pressed():
                 print("smash drumb")
-                
+
             colour = get_colour(COLOR_SENSOR)
 
             if colour == "RED":
@@ -116,9 +115,10 @@ def bake_the_pi():
         pass
     finally:
         print("Done playing")
-        reset_brick() # Turn off everything on the brick's hardware, and reset it
+        reset_brick()  # Turn off everything on the brick's hardware, and reset it
         exit()
 
 
 if __name__ == "__main__":
     bake_the_pi()
+
