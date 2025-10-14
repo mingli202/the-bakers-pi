@@ -9,6 +9,17 @@ import math
 from project.utils.brick import EV3ColorSensor, reset_brick, wait_ready_sensors, TouchSensor
 from project.utils import sound
 
+
+C5 = sound.Sound(duration=1.0, pitch="C5", volume=100)
+C6 = sound.Sound(duration=1.0, pitch="C6", volume=100)
+C7 = sound.Sound(duration=1.0, pitch="C7", volume=100)
+C8 = sound.Sound(duration=1.0, pitch="C8", volume=100)
+
+STOP_SENSOR = TouchSensor(1)
+DRUMB_SENSOR = TouchSensor(2)
+COLOR_SENSOR = EV3ColorSensor(3)
+
+
 # reference unit vectors (pink is approx red+blue)
 refs = {
     "RED": (255.0, 0.0, 0.0),
@@ -42,12 +53,12 @@ def get_colour(sensor: EV3ColorSensor):
     closest_dist = math.inf
     for name, (rr, gg, bb) in normalized_refs.items():
         dist = math.sqrt((rn - rr) ** 2 + (gn - gg) ** 2 + (bn - bb) ** 2)
-        if dist > closest_dist:
+        if dist < closest_dist:
             closest_dist = dist
             best_name = name
 
-    # threshold to avoid misclassifying ambiguous readings; tune 0.7-0.9
-    # if closest_dist >= 0.8:
+    if best_name == "YELLOW" and closest_dist > 0.35:
+        return "UNKNOWN"
     return best_name
     # return "UNKNOWN"
 
@@ -62,15 +73,6 @@ def get_colour(sensor: EV3ColorSensor):
     # process colour => (RED, GREEN, BLUE, YELLOW)
     # switch colour, case 1-4 => sound(note)
     # if drum => rotate motor 180deg
-
-C5 = sound.Sound(duration=1.0, pitch="C5", volume=100)
-C6 = sound.Sound(duration=1.0, pitch="C6", volume=100)
-C7 = sound.Sound(duration=1.0, pitch="C7", volume=100)
-C8 = sound.Sound(duration=1.0, pitch="C8", volume=100)
-
-STOP_SENSOR = TouchSensor(1)
-DRUMB_SENSOR = TouchSensor(2)
-COLOR_SENSOR = EV3ColorSensor(3)
 
 wait_ready_sensors(True)
 print("Done waiting.")
