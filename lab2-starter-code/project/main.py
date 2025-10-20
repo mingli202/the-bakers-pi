@@ -6,8 +6,8 @@
 
 from time import sleep
 import math
-from utils.brick import EV3ColorSensor, reset_brick, wait_ready_sensors, TouchSensor
-from utils import sound
+from project.utils.brick import EV3ColorSensor, reset_brick, wait_ready_sensors, TouchSensor
+from project.utils import sound
 
 # reference unit vectors (pink is approx red+blue)
 refs = {
@@ -27,13 +27,10 @@ for name, (rr, gg, bb) in refs.items():
 def get_colour(sensor: EV3ColorSensor):
     r, g, b = sensor.get_rgb()
     # handle zero / very dark readings
-    total = r + g + b
-    if total < 10:  # sensor returned almost nothing; tune as needed
-        return "UNKNOWN"
 
     # UNIT-VECTOR / COSINE-SIMILARITY
     denom = r + g + b
-    if denom == 0:
+    if denom <= 10:
         return "UNKNOWN"
     rn, gn, bn = r / denom, g / denom, b / denom
 
@@ -42,12 +39,16 @@ def get_colour(sensor: EV3ColorSensor):
     closest_dist = math.inf
     for name, (rr, gg, bb) in normalized_refs.items():
         dist = math.sqrt((rn - rr) ** 2 + (gn - gg) ** 2 + (bn - bb) ** 2)
-        if dist > closest_dist:
+        if dist < closest_dist:
             closest_dist = dist
             best_name = name
 
+    if best_name == "YELLOW" and dist > 0.35:
+        return "UNKNOWN"
+
     # threshold to avoid misclassifying ambiguous readings; tune 0.7-0.9
     # if closest_dist >= 0.8:
+    print(f"closest_dist {closest_dist} {best_name} {r} {g} {b}")
     return best_name
     # return "UNKNOWN"
 
@@ -64,9 +65,9 @@ def get_colour(sensor: EV3ColorSensor):
 # if drum => rotate motor 180deg
 
 C5 = sound.Sound(duration=1.0, pitch="C5", volume=100)
-C6 = sound.Sound(duration=1.0, pitch="C6", volume=100)
-C7 = sound.Sound(duration=1.0, pitch="C7", volume=100)
-C8 = sound.Sound(duration=1.0, pitch="C8", volume=100)
+C6 = sound.Sound(duration=1.0, pitch="E5", volume=100)
+C7 = sound.Sound(duration=1.0, pitch="G5", volume=100)
+C8 = sound.Sound(duration=1.0, pitch="C6", volume=100)
 
 STOP_SENSOR = TouchSensor(1)
 DRUMB_SENSOR = TouchSensor(2)
@@ -104,10 +105,10 @@ def bake_the_pi():
                 C8.play()
                 C8.wait_done()
             else:
-                print("no colour detected")
+                # print("no colour detected")
                 sleep(0.01)
 
-            print(f"iteration: {i}")
+            # print(f"iteration: {i}")
             i += 1
     except BaseException:
         pass
