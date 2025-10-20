@@ -2,6 +2,7 @@ from time import sleep
 import math
 from project.utils.brick import (
     EV3ColorSensor,
+    Motor,
     reset_brick,
     wait_ready_sensors,
     TouchSensor,
@@ -67,24 +68,22 @@ def get_colour(sensor: EV3ColorSensor):
 # switch colour, case 1-4 => sound(note)
 # if drum => rotate motor 180deg
 
-volume = 80
-C5 = sound.Sound(duration=1, pitch="C5", volume=volume)
-C6 = sound.Sound(duration=1, pitch="E5", volume=volume)
-C7 = sound.Sound(duration=1, pitch="G5", volume=volume)
-C8 = sound.Sound(duration=1, pitch="C6", volume=volume)
-
-STOP_SENSOR = TouchSensor(1)
-DRUMB_SENSOR = TouchSensor(2)
-COLOR_SENSOR = EV3ColorSensor(3)
-
-wait_ready_sensors(True)
-print("Done waiting.")
-
-colour = "UNKNOWN"
-has_started = False
-
 
 def main():
+    volume = 100
+    C5 = sound.Sound(duration=1, pitch="C5", volume=volume)
+    C6 = sound.Sound(duration=1, pitch="E5", volume=volume)
+    C7 = sound.Sound(duration=1, pitch="G5", volume=volume)
+    C8 = sound.Sound(duration=1, pitch="C6", volume=volume)
+
+    STOP_SENSOR = TouchSensor(1)
+    DRUMB_SENSOR = TouchSensor(2)
+    COLOR_SENSOR = EV3ColorSensor(3)
+    MOTOR = Motor("A")
+
+    wait_ready_sensors(True)
+    print("Done waiting.")
+
     try:
         while not STOP_SENSOR.is_pressed():
             sleep(0.01)
@@ -92,9 +91,17 @@ def main():
         print("starting instrument")
         sleep(1)
 
+        colour = "UNKNOWN"
+        has_started = False
         while not STOP_SENSOR.is_pressed():  # exit when stop button is pressed
             if DRUMB_SENSOR.is_pressed():
-                print("smash drumb")
+                if has_started:
+                    MOTOR.set_power(0)
+                    has_started = False
+                else:
+                    MOTOR.set_power(-50)
+                    has_started = True
+                sleep(0.5)
 
             colour = get_colour(COLOR_SENSOR)
 
