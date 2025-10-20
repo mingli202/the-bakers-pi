@@ -47,9 +47,17 @@ def get_colour(sensor: EV3ColorSensor):
             closest_dist = dist
             best_name = name
 
-    if best_name == "YELLOW" and dist > 0.35:
+    if best_name == "YELLOW" and not (0.22 < dist < 0.35):
+        return "UNKNOWN"
+    elif best_name == "RED" and closest_dist > 0.2:
+        return "UNKNOWN"
+    elif best_name == "GREEN" and not (0.3 < closest_dist < 0.45):
+        return "UNKNOWN"
+    elif best_name == "BLUE" and not (0.45 < closest_dist < 0.6):
         return "UNKNOWN"
 
+    if r + g + b < 69:
+        return "UNKNOWN"
     # threshold to avoid misclassifying ambiguous readings; tune 0.7-0.9
     # if closest_dist >= 0.8:
     print(f"closest_dist {closest_dist} {best_name} {r} {g} {b}")
