@@ -1,13 +1,13 @@
-### Heres the code that controls everything
-
-# from project.speaker_button import play_sound
-# from project.collect_color_sensor_data import collect_color_sensor_data
-# from project.collect_us_sensor_data import collect_continuous_us_data
-
 from time import sleep
 import math
-from project.utils.brick import EV3ColorSensor, reset_brick, wait_ready_sensors, TouchSensor
+from project.utils.brick import (
+    EV3ColorSensor,
+    reset_brick,
+    wait_ready_sensors,
+    TouchSensor,
+)
 from project.utils import sound
+from threading import Thread
 
 # reference unit vectors (pink is approx red+blue)
 refs = {
@@ -18,7 +18,7 @@ refs = {
 }
 
 # normalize reference
-normalized_refs = {}
+normalized_refs: dict[str, tuple[float, float, float]] = {}
 for name, (rr, gg, bb) in refs.items():
     d = rr + gg + bb
     normalized_refs[name] = (rr / d, gg / d, bb / d)
@@ -27,6 +27,8 @@ for name, (rr, gg, bb) in refs.items():
 def get_colour(sensor: EV3ColorSensor):
     r, g, b = sensor.get_rgb()
     # handle zero / very dark readings
+    if r is None or g is None or b is None:
+        return
 
     # UNIT-VECTOR / COSINE-SIMILARITY
     denom = r + g + b
@@ -37,6 +39,7 @@ def get_colour(sensor: EV3ColorSensor):
     # compute cosine similarity and pick best match
     best_name = "UNKNOWN"
     closest_dist = math.inf
+    dist = 0
     for name, (rr, gg, bb) in normalized_refs.items():
         dist = math.sqrt((rn - rr) ** 2 + (gn - gg) ** 2 + (bn - bb) ** 2)
         if dist < closest_dist:
@@ -64,10 +67,11 @@ def get_colour(sensor: EV3ColorSensor):
 # switch colour, case 1-4 => sound(note)
 # if drum => rotate motor 180deg
 
-C5 = sound.Sound(duration=1.0, pitch="C5", volume=100)
-C6 = sound.Sound(duration=1.0, pitch="E5", volume=100)
-C7 = sound.Sound(duration=1.0, pitch="G5", volume=100)
-C8 = sound.Sound(duration=1.0, pitch="C6", volume=100)
+volume = 80
+C5 = sound.Sound(duration=1, pitch="C5", volume=volume)
+C6 = sound.Sound(duration=1, pitch="E5", volume=volume)
+C7 = sound.Sound(duration=1, pitch="G5", volume=volume)
+C8 = sound.Sound(duration=1, pitch="C6", volume=volume)
 
 STOP_SENSOR = TouchSensor(1)
 DRUMB_SENSOR = TouchSensor(2)
@@ -76,10 +80,12 @@ COLOR_SENSOR = EV3ColorSensor(3)
 wait_ready_sensors(True)
 print("Done waiting.")
 
+colour = "UNKNOWN"
+has_started = False
 
-def bake_the_pi():
+
+def main():
     try:
-        i = 0
         while not STOP_SENSOR.is_pressed():
             sleep(0.01)
 
@@ -108,8 +114,6 @@ def bake_the_pi():
                 # print("no colour detected")
                 sleep(0.01)
 
-            # print(f"iteration: {i}")
-            i += 1
     except BaseException:
         pass
     finally:
@@ -119,5 +123,4 @@ def bake_the_pi():
 
 
 if __name__ == "__main__":
-    bake_the_pi()
-
+    main()
