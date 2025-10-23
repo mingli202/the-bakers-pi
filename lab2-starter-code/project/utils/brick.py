@@ -17,7 +17,7 @@ import sys
 
 
 def busy_sleep(seconds: float):
-    """A different form of time.sleep, which uses a while loop that 
+    """A different form of time.sleep, which uses a while loop that
     constantly checks the time, to see if the duration has elapsed."""
     start = time.time()
     while (time.time() - start) < seconds:
@@ -34,11 +34,16 @@ BP = None
 try:
     from brickpi3 import Enumeration, FirmwareVersionError, SensorError, BrickPi3
     import spidev
+
     BP = BrickPi3()  # The BrickPi3 instance
 except (ModuleNotFoundError, OSError, TypeError) as err:
-    print('A BrickPi module is missing, or BrickPi is missing, intializing dummy BP', file=sys.stderr)
-    print(f'Warning: {err.__class__.__name__}({err})', file=sys.stderr)
+    print(
+        "A BrickPi module is missing, or BrickPi is missing, intializing dummy BP",
+        file=sys.stderr,
+    )
+    print(f"Warning: {err.__class__.__name__}({err})", file=sys.stderr)
     from .dummy import Enumeration, FirmwareVersionError, SensorError, BrickPi3
+
     BP = BrickPi3()  # The BrickPi3 instance
 
 _OLD_BP = BP
@@ -56,14 +61,14 @@ WAIT_READY_INTERVAL = 0.01
 INF = float("inf")
 
 PORTS: dict[str, int] = {
-    '1': BrickPi3.PORT_1,
-    '2': BrickPi3.PORT_2,
-    '3': BrickPi3.PORT_3,
-    '4': BrickPi3.PORT_4,
-    'A': BrickPi3.PORT_A,
-    'B': BrickPi3.PORT_B,
-    'C': BrickPi3.PORT_C,
-    'D': BrickPi3.PORT_D,
+    "1": BrickPi3.PORT_1,
+    "2": BrickPi3.PORT_2,
+    "3": BrickPi3.PORT_3,
+    "4": BrickPi3.PORT_4,
+    "A": BrickPi3.PORT_A,
+    "B": BrickPi3.PORT_B,
+    "C": BrickPi3.PORT_C,
+    "D": BrickPi3.PORT_D,
 }
 
 
@@ -74,7 +79,9 @@ def exception_handler(exception=Exception):
                 func(*args, **kwargs)
             except exception as err:
                 print("ERROR:", err)
+
         return wrapper
+
     return exception_handler_factory
 
 
@@ -130,6 +137,7 @@ class ColorMappings:
     """
     Color mappings based on the colors that can be detected by the color sensor.
     """
+
     UNKNOWN = ColorMapping("Unknown", 0)
     BLACK = ColorMapping("Black", 1)
     BLUE = ColorMapping("Blue", 2)
@@ -146,6 +154,7 @@ class Color:
     """
     Namespace for color names, to reference them easily.
     """
+
     UNKNOWN = "Unknown"
     BLACK = "Black"
     BLUE = "Blue"
@@ -204,7 +213,8 @@ class Brick(BrickPi3):
             port_index = 3
         else:
             raise IOError(
-                "get_sensor error. Must be one sensor port at a time. PORT_1, PORT_2, PORT_3, or PORT_4.")
+                "get_sensor error. Must be one sensor port at a time. PORT_1, PORT_2, PORT_3, or PORT_4."
+            )
 
         if self.SensorType[port_index] == self.SENSOR_TYPE.CUSTOM:
             outArray = [self.SPI_Address, message_type, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -230,20 +240,27 @@ class Brick(BrickPi3):
             else:
                 raise IOError("get_sensor error: No SPI response")
 
-        elif (self.SensorType[port_index] == self.SENSOR_TYPE.TOUCH
-              or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_TOUCH
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_TOUCH
-              or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_ULTRASONIC
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_COLOR_REFLECTED
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_COLOR_AMBIENT
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_COLOR_COLOR
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_ULTRASONIC_LISTEN
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_INFRARED_PROXIMITY):
+        elif (
+            self.SensorType[port_index] == self.SENSOR_TYPE.TOUCH
+            or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_TOUCH
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_TOUCH
+            or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_ULTRASONIC
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_COLOR_REFLECTED
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_COLOR_AMBIENT
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_COLOR_COLOR
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_ULTRASONIC_LISTEN
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_INFRARED_PROXIMITY
+        ):
             outArray = [self.SPI_Address, message_type, 0, 0, 0, 0, 0]
             reply = self.spi_transfer_array(outArray)
-            if (reply[3] == 0xA5):
-                if ((reply[4] == self.SensorType[port_index] or (self.SensorType[port_index] == self.SENSOR_TYPE.TOUCH
-                                                                 and (reply[4] == self.SENSOR_TYPE.NXT_TOUCH or reply[4] == self.SENSOR_TYPE.EV3_TOUCH)))):
+            if reply[3] == 0xA5:
+                if reply[4] == self.SensorType[port_index] or (
+                    self.SensorType[port_index] == self.SENSOR_TYPE.TOUCH
+                    and (
+                        reply[4] == self.SENSOR_TYPE.NXT_TOUCH
+                        or reply[4] == self.SENSOR_TYPE.EV3_TOUCH
+                    )
+                ):
                     return reply[5]
                 else:
                     return SENSOR_STATE.INCORRECT_SENSOR_PORT
@@ -251,8 +268,7 @@ class Brick(BrickPi3):
                 raise IOError("get_sensor error: No SPI response")
 
         elif self.SensorType[port_index] == self.SENSOR_TYPE.NXT_COLOR_FULL:
-            outArray = [self.SPI_Address, message_type,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            outArray = [self.SPI_Address, message_type, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             reply = self.spi_transfer_array(outArray)
             if reply[3] == 0xA5:
                 if reply[4] == self.SensorType[port_index]:
@@ -262,16 +278,18 @@ class Brick(BrickPi3):
             else:
                 raise IOError("get_sensor error: No SPI response")
 
-        elif (self.SensorType[port_index] == self.SENSOR_TYPE.NXT_LIGHT_ON
-              or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_LIGHT_OFF
-              or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_COLOR_RED
-              or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_COLOR_GREEN
-              or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_COLOR_BLUE
-              or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_COLOR_OFF
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_GYRO_ABS
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_GYRO_DPS
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_ULTRASONIC_CM
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_ULTRASONIC_INCHES):
+        elif (
+            self.SensorType[port_index] == self.SENSOR_TYPE.NXT_LIGHT_ON
+            or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_LIGHT_OFF
+            or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_COLOR_RED
+            or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_COLOR_GREEN
+            or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_COLOR_BLUE
+            or self.SensorType[port_index] == self.SENSOR_TYPE.NXT_COLOR_OFF
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_GYRO_ABS
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_GYRO_DPS
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_ULTRASONIC_CM
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_ULTRASONIC_INCHES
+        ):
             outArray = [self.SPI_Address, message_type, 0, 0, 0, 0, 0, 0]
             reply = self.spi_transfer_array(outArray)
             if reply[3] == 0xA5:
@@ -282,8 +300,10 @@ class Brick(BrickPi3):
             else:
                 raise IOError("get_sensor error: No SPI response")
 
-        elif (self.SensorType[port_index] == self.SENSOR_TYPE.EV3_COLOR_RAW_REFLECTED
-              or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_GYRO_ABS_DPS):
+        elif (
+            self.SensorType[port_index] == self.SENSOR_TYPE.EV3_COLOR_RAW_REFLECTED
+            or self.SensorType[port_index] == self.SENSOR_TYPE.EV3_GYRO_ABS_DPS
+        ):
             outArray = [self.SPI_Address, message_type, 0, 0, 0, 0, 0, 0, 0, 0]
             reply = self.spi_transfer_array(outArray)
             if reply[3] == 0xA5:
@@ -295,8 +315,22 @@ class Brick(BrickPi3):
                 raise IOError("get_sensor error: No SPI response")
 
         elif self.SensorType[port_index] == self.SENSOR_TYPE.EV3_COLOR_COLOR_COMPONENTS:
-            outArray = [self.SPI_Address, message_type,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            outArray = [
+                self.SPI_Address,
+                message_type,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ]
             reply = self.spi_transfer_array(outArray)
             if reply[3] == 0xA5:
                 if reply[4] == self.SensorType[port_index]:
@@ -307,8 +341,22 @@ class Brick(BrickPi3):
                 raise IOError("get_sensor error: No SPI response")
 
         elif self.SensorType[port_index] == self.SENSOR_TYPE.EV3_INFRARED_SEEK:
-            outArray = [self.SPI_Address, message_type,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            outArray = [
+                self.SPI_Address,
+                message_type,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ]
             reply = self.spi_transfer_array(outArray)
             if reply[3] == 0xA5:
                 if reply[4] == self.SensorType[port_index]:
@@ -329,14 +377,14 @@ class Brick(BrickPi3):
             else:
                 raise IOError("get_sensor error: No SPI response")
 
-        raise IOError(
-            "get_sensor error: Sensor not configured or not supported.")
+        raise IOError("get_sensor error: Sensor not configured or not supported.")
 
 
 class Sensor:
     """
     Template Sensor class. Must implement set_mode(mode) to function.
     """
+
     class Status:
         VALID_DATA = "VALID_DATA"
         NOT_CONFIGURED = "NOT_CONFIGURED"
@@ -345,7 +393,7 @@ class Sensor:
         I2C_ERROR = "I2C_ERROR"
         INCORRECT_SENSOR_PORT = "INCORRECT_SENSOR_PORT"
 
-    ALL_SENSORS = {key: None for key in '1 2 3 4'.split(' ')}
+    ALL_SENSORS = {key: None for key in "1 2 3 4".split(" ")}
 
     def __init__(self, port: Literal[1, 2, 3, 4], bp=None):
         "Initialize sensor with a given port (1, 2, 3, or 4)."
@@ -441,8 +489,10 @@ class EV3UltrasonicSensor(Sensor):
     in - inches measure
     listen - 0 or 1, 1 means another ultrasonic sensor is detected
     """
+
     class Mode:
         "Mode for the EV3 Ultrasonic Sensor."
+
         CM = "cm"
         IN = "in"
         LISTEN = "listen"
@@ -461,13 +511,16 @@ class EV3UltrasonicSensor(Sensor):
         try:
             if mode.lower() == self.Mode.CM:
                 self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_ULTRASONIC_CM)
+                    self.port, BrickPi3.SENSOR_TYPE.EV3_ULTRASONIC_CM
+                )
             elif mode.lower() == self.Mode.IN:
                 self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_ULTRASONIC_INCHES)
+                    self.port, BrickPi3.SENSOR_TYPE.EV3_ULTRASONIC_INCHES
+                )
             elif mode.lower() == self.Mode.LISTEN:
                 self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_ULTRASONIC_LISTEN)
+                    self.port, BrickPi3.SENSOR_TYPE.EV3_ULTRASONIC_LISTEN
+                )
             else:
                 return False
             self.mode = mode.lower()
@@ -505,8 +558,10 @@ class EV3ColorSensor(Sensor):
     rawred - give list of values [Red, Unknown?]
     id - provide a single integer value based on the sensor's guess of detected color
     """
+
     class Mode:
         "Mode for the EV3 Color Sensor."
+
         COMPONENT = "component"
         AMBIENT = "ambient"
         RED = "red"
@@ -528,22 +583,26 @@ class EV3ColorSensor(Sensor):
         id - provide a single integer value based on the sensor's guess of detected color
         """
         try:
-
             if mode.lower() == self.Mode.COMPONENT:
                 self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_COLOR_COLOR_COMPONENTS)
+                    self.port, BrickPi3.SENSOR_TYPE.EV3_COLOR_COLOR_COMPONENTS
+                )
             elif mode.lower() == self.Mode.AMBIENT:
                 self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_COLOR_AMBIENT)
+                    self.port, BrickPi3.SENSOR_TYPE.EV3_COLOR_AMBIENT
+                )
             elif mode.lower() == self.Mode.RED:
                 self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_COLOR_REFLECTED)
+                    self.port, BrickPi3.SENSOR_TYPE.EV3_COLOR_REFLECTED
+                )
             elif mode.lower() == self.Mode.RAW_RED:
                 self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_COLOR_RAW_REFLECTED)
+                    self.port, BrickPi3.SENSOR_TYPE.EV3_COLOR_RAW_REFLECTED
+                )
             elif mode.lower() == self.Mode.ID:
                 self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_COLOR_COLOR)
+                    self.port, BrickPi3.SENSOR_TYPE.EV3_COLOR_COLOR
+                )
             else:
                 return False
             self.mode = mode.lower()
@@ -558,7 +617,7 @@ class EV3ColorSensor(Sensor):
             self.wait_ready()
         return self.get_value()
 
-    def get_rgb(self) -> list[float]:
+    def get_rgb(self) -> list[float] | list[None]:
         "Return the RGB values from the sensor. This will switch the sensor to component mode."
         if self.mode != self.Mode.COMPONENT:
             self.set_mode(self.Mode.COMPONENT)
@@ -573,6 +632,7 @@ class EV3ColorSensor(Sensor):
             self.wait_ready()
         return self.get_value()
 
+
 class EV3GyroSensor(Sensor):
     """
     EV3 Gyro sensor. Default mode is "both".
@@ -582,8 +642,10 @@ class EV3GyroSensor(Sensor):
     dps - Degrees per second of rotation
     both - list of [abs, dps] values
     """
+
     class Mode:
         "Mode for the EV3 Gyro Sensor."
+
         ABS = "abs"
         DPS = "dps"
         BOTH = "both"
@@ -602,14 +664,13 @@ class EV3GyroSensor(Sensor):
         """
         try:
             if mode.lower() == self.Mode.ABS:
-                self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_GYRO_ABS)
+                self.brick.set_sensor_type(self.port, BrickPi3.SENSOR_TYPE.EV3_GYRO_ABS)
             elif mode.lower() == self.Mode.DPS:
-                self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_GYRO_DPS)
+                self.brick.set_sensor_type(self.port, BrickPi3.SENSOR_TYPE.EV3_GYRO_DPS)
             elif mode.lower() == self.Mode.BOTH:
                 self.brick.set_sensor_type(
-                    self.port, BrickPi3.SENSOR_TYPE.EV3_GYRO_ABS_DPS)
+                    self.port, BrickPi3.SENSOR_TYPE.EV3_GYRO_ABS_DPS
+                )
             else:
                 return False
             self.mode = mode.lower()
@@ -641,6 +702,7 @@ class EV3GyroSensor(Sensor):
 
 class Motor:
     "Motor class for any motor."
+
     INF = INF
     MAX_SPEED = 1560  # positive or negative degree per second speed
     MAX_POWER = 100  # positive or negative percent power
@@ -670,9 +732,9 @@ class Motor:
         Commands the motor to rotate continuously. Will rotate at the given power percentage.
         (Constant-Type Motor Control)
 
-        Percentage has no directly associated speed in (deg/sec). However, the maximum 
+        Percentage has no directly associated speed in (deg/sec). However, the maximum
         speed of the motor is "potentially" 1250 deg/sec. The actual speed of the motor
-        may fluctuate based on the strength of the power source (battery) attached to 
+        may fluctuate based on the strength of the power source (battery) attached to
         the robot.
 
         SIDE EFFECTS:
@@ -688,7 +750,7 @@ class Motor:
     def float_motor(self):
         """(Float the motor), which unlocks the motor, and allows outside forces to rotate it.
 
-        NORMALLY, when powered, the motor will maintain its current position, 
+        NORMALLY, when powered, the motor will maintain its current position,
         and prevent outside forces from rotating it.
 
         This function (float_motor) commands the motor to allow outside forces to rotate it.
@@ -717,7 +779,7 @@ class Motor:
         4. Set Position to 60
         5. Motor maintains its current position
         6. Reset Encoder
-        7. Motor rotates 60 more degrees 
+        7. Motor rotates 60 more degrees
             (because current position becomes 0. Motor tries to maintain last set position)
 
         SIDE EFFECTS:
@@ -744,7 +806,7 @@ class Motor:
         5. Motor rotates another 60 degrees
         6. Reset Encoder
         7. Motor rotates 120 degrees
-            because current position becomes 0. 
+            because current position becomes 0.
             Motor tries to maintain last set position of 120 degrees (60 + 60).
 
         SIDE EFFECTS:
@@ -801,11 +863,11 @@ class Motor:
 
     def set_limits(self, power=0, dps=0):
         """
-        Set the motor speed limit. The speed is limited to whichever value is 
+        Set the motor speed limit. The speed is limited to whichever value is
         slowest, power or dps.
         (Position-Type Motor Control)
 
-        It provides a maximum speed limit for both the Motor.set_position and 
+        It provides a maximum speed limit for both the Motor.set_position and
         Motor.set_position_relative
         Since the maximum potential speed of a motor is 1250 dps, then a power of 50%
         could potentially give a speed of 625 dps.
@@ -881,7 +943,9 @@ class Motor:
 
     def is_moving(self):
         try:
-            return (not math.isclose(self.get_power(), 0)) and (not math.isclose(self.get_speed(), 0))
+            return (not math.isclose(self.get_power(), 0)) and (
+                not math.isclose(self.get_speed(), 0)
+            )
         except TypeError:
             return None
 
@@ -924,7 +988,7 @@ class Motor:
         motor_ports = map(str.upper, list(motor_ports))
         result = []
         for port in motor_ports:
-            if port in ['A', 'B', 'C', 'D']:
+            if port in ["A", "B", "C", "D"]:
                 result.append(Motor(port))
         return tuple(result)
 
@@ -945,17 +1009,19 @@ def create_motors(motor_ports: list[Literal["A", "B", "C", "D"]] | str):
     return Motor.create_motors(motor_ports)
 
 
-def configure_ports(*,
-                    PORT_1: Type[Sensor] = None,
-                    PORT_2: Type[Sensor] = None,
-                    PORT_3: Type[Sensor] = None,
-                    PORT_4: Type[Sensor] = None,
-                    PORT_A: Type[Motor] = None,
-                    PORT_B: Type[Motor] = None,
-                    PORT_C: Type[Motor] = None,
-                    PORT_D: Type[Motor] = None,
-                    wait: bool = True,
-                    print_status: bool = True) -> Sensor | Motor | list[Sensor | Motor]:
+def configure_ports(
+    *,
+    PORT_1: Type[Sensor] = None,
+    PORT_2: Type[Sensor] = None,
+    PORT_3: Type[Sensor] = None,
+    PORT_4: Type[Sensor] = None,
+    PORT_A: Type[Motor] = None,
+    PORT_B: Type[Motor] = None,
+    PORT_C: Type[Motor] = None,
+    PORT_D: Type[Motor] = None,
+    wait: bool = True,
+    print_status: bool = True,
+) -> Sensor | Motor | list[Sensor | Motor]:
     """
     Configure the ports to use the specified sensor or motor and return objects for each item,
     ordered by sensor ports followed by motor ports.
@@ -974,8 +1040,7 @@ def configure_ports(*,
     if (sensor_ports + motor_ports).count(None) == 7:  # if only one device configured
         is_single_device = True
     if print_status:
-        print(
-            f"Configuring port{'' if is_single_device else 's'}, please wait...")
+        print(f"Configuring port{'' if is_single_device else 's'}, please wait...")
     sensors: list[Sensor] = []
     motors: list[Motor] = []
     for n, sensor_type in enumerate(sensor_ports, 1):

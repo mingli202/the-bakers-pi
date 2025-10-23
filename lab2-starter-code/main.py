@@ -1,24 +1,13 @@
-### Heres the code that controls everything
-
-# from project.speaker_button import play_sound
-# from project.collect_color_sensor_data import collect_color_sensor_data
-# from project.collect_us_sensor_data import collect_continuous_us_data
-
 from time import sleep
 import math
-from utils.brick import EV3ColorSensor, reset_brick, wait_ready_sensors, TouchSensor
-from utils import sound
-
-
-C5 = sound.Sound(duration=1.0, pitch="C5", volume=100)
-C6 = sound.Sound(duration=1.0, pitch="C6", volume=100)
-C7 = sound.Sound(duration=1.0, pitch="C7", volume=100)
-C8 = sound.Sound(duration=1.0, pitch="C8", volume=100)
-
-STOP_SENSOR = TouchSensor(1)
-DRUMB_SENSOR = TouchSensor(2)
-COLOR_SENSOR = EV3ColorSensor(3)
-
+from project.utils.brick import (
+    EV3ColorSensor,
+    Motor,
+    reset_brick,
+    wait_ready_sensors,
+    TouchSensor,
+)
+from project.utils import sound
 
 # reference unit vectors (pink is approx red+blue)
 refs = {
@@ -29,7 +18,7 @@ refs = {
 }
 
 # normalize reference
-normalized_refs = {}
+normalized_refs: dict[str, tuple[float, float, float]] = {}
 for name, (rr, gg, bb) in refs.items():
     d = rr + gg + bb
     normalized_refs[name] = (rr / d, gg / d, bb / d)
@@ -38,29 +27,39 @@ for name, (rr, gg, bb) in refs.items():
 def get_colour(sensor: EV3ColorSensor):
     r, g, b = sensor.get_rgb()
     # handle zero / very dark readings
-    total = r + g + b
-    if total < 10:  # sensor returned almost nothing; tune as needed
-        return "UNKNOWN"
+    if r is None or g is None or b is None:
+        return
 
     # UNIT-VECTOR / COSINE-SIMILARITY
     denom = r + g + b
-    if denom == 0:
+    if denom <= 10:
         return "UNKNOWN"
     rn, gn, bn = r / denom, g / denom, b / denom
 
     # compute cosine similarity and pick best match
     best_name = "UNKNOWN"
     closest_dist = math.inf
+    dist = 0
     for name, (rr, gg, bb) in normalized_refs.items():
         dist = math.sqrt((rn - rr) ** 2 + (gn - gg) ** 2 + (bn - bb) ** 2)
         if dist < closest_dist:
             closest_dist = dist
             best_name = name
-
-    if best_name == "YELLOW" and closest_dist > 0.35:
+    
+    # threshold to avoid misclassifying ambiguous readings
+    if best_name == "YELLOW" and not (0.22 < dist < 0.35):
         return "UNKNOWN"
+    elif best_name == "RED" and closest_dist > 0.2:
+        return "UNKNOWN"
+    elif best_name == "GREEN" and not (0.3 < closest_dist < 0.45):
+        return "UNKNOWN"
+    elif best_name == "BLUE" and not (0.45 < closest_dist < 0.6):
+        return "UNKNOWN"
+
+    if r + g + b < 69:
+        return "UNKNOWN"
+
     return best_name
-    # return "UNKNOWN"
 
 
 # function that just loops and checks for inputs; exits when exception
@@ -74,25 +73,44 @@ def get_colour(sensor: EV3ColorSensor):
 # switch colour, case 1-4 => sound(note)
 # if drum => rotate motor 180deg
 
-wait_ready_sensors(True)
-print("Done waiting.")
 
+def main():
+    volume = 100
+    C5 = sound.Sound(duration=1, pitch="C5", volume=volume)
+    C6 = sound.Sound(duration=1, pitch="E5", volume=volume)
+    C7 = sound.Sound(duration=1, pitch="G5", volume=volume)
+    C8 = sound.Sound(duration=1, pitch="C6", volume=volume)
 
-def bake_the_pi():
+    STOP_SENSOR = TouchSensor(1)
+    DRUMB_SENSOR = TouchSensor(2)
+    COLOR_SENSOR = EV3ColorSensor(3)
+    MOTOR = Motor("A")
+
+    wait_ready_sensors(True)
+    print("Done waiting.")
+
     try:
-        i = 0
         while not STOP_SENSOR.is_pressed():
             sleep(0.01)
 
         print("starting instrument")
         sleep(1)
 
+        colour = "UNKNOWN"
+        has_started = False
         while not STOP_SENSOR.is_pressed():  # exit when stop button is pressed
             if DRUMB_SENSOR.is_pressed():
-                print("smash drumb")
+                if has_started:
+                    MOTOR.set_power(0)
+                    has_started = False
+                else:
+                    MOTOR.set_power(-50)
+                    has_started = True
+                sleep(0.5)
 
             colour = get_colour(COLOR_SENSOR)
 
+            # play sound based on colour
             if colour == "RED":
                 C5.play()
                 C5.wait_done()
@@ -106,11 +124,8 @@ def bake_the_pi():
                 C8.play()
                 C8.wait_done()
             else:
-                print("no colour detected")
                 sleep(0.01)
 
-            print(f"iteration: {i}")
-            i += 1
     except BaseException:
         pass
     finally:
@@ -120,5 +135,4 @@ def bake_the_pi():
 
 
 if __name__ == "__main__":
-    bake_the_pi()
-
+    main()
