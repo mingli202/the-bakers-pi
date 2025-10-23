@@ -9,7 +9,7 @@ from project.utils.brick import (
 )
 from project.utils import sound
 
-# reference unit vectors (pink is approx red+blue)
+# reference unit vectors (yellow is green + red)
 refs = {
     "RED": (255.0, 0.0, 0.0),
     "GREEN": (0.0, 255.0, 0.0),
@@ -17,7 +17,7 @@ refs = {
     "YELLOW": (255.0, 255.0, 0.0),
 }
 
-# normalize reference
+# normalize reference colors to unit vectors
 normalized_refs: dict[str, tuple[float, float, float]] = {}
 for name, (rr, gg, bb) in refs.items():
     d = rr + gg + bb
@@ -25,28 +25,40 @@ for name, (rr, gg, bb) in refs.items():
 
 
 def get_colour(sensor: EV3ColorSensor):
+    """
+    Detect the color currently seen by the EV3 color sensor.
+
+    The function reads raw RGB values from the sensor, normalizes them,
+    and compares them against reference unit vectors using Euclidean distance.
+    It returns the name of the closest matching color if within a threshold.
+
+    Args:
+        sensor (EV3ColorSensor): The EV3 color sensor instance.
+
+    Returns:
+        str: The detected color name ("RED", "GREEN", "BLUE", "YELLOW", or "UNKNOWN").
+    """
     r, g, b = sensor.get_rgb()
     # handle zero / very dark readings
     if r is None or g is None or b is None:
         return
 
-    # UNIT-VECTOR / COSINE-SIMILARITY
+    # normalize RGB values to unit vectors
     denom = r + g + b
     if denom <= 10:
         return "UNKNOWN"
     rn, gn, bn = r / denom, g / denom, b / denom
 
-    # compute cosine similarity and pick best match
+    # Find the closest reference color by Euclidean distance
     best_name = "UNKNOWN"
     closest_dist = math.inf
-    dist = 0
     for name, (rr, gg, bb) in normalized_refs.items():
         dist = math.sqrt((rn - rr) ** 2 + (gn - gg) ** 2 + (bn - bb) ** 2)
         if dist < closest_dist:
             closest_dist = dist
             best_name = name
     
-    # threshold to avoid misclassifying ambiguous readings
+    # threshold to avoid misclassifying ambiguous readings and noise
     if best_name == "YELLOW" and not (0.22 < dist < 0.35):
         return "UNKNOWN"
     elif best_name == "RED" and closest_dist > 0.2:
@@ -75,6 +87,21 @@ def get_colour(sensor: EV3ColorSensor):
 
 
 def main():
+    """
+    Main control loop for the color-drum instrument.
+
+    The program waits for the user to press the "start" touch sensor,
+    then continuously checks:
+      - The color sensor to determine which note to play.
+      - A drum touch sensor to toggle motor rotation (simulating drumming).
+      - A stop touch sensor to exit the program.
+
+    Each detected color corresponds to a specific musical note played
+    through the EV3 sound module.
+
+    Pressing the "stop" sensor ends the program gracefully.
+    """
+    # Initialize note sounds and hardware components
     volume = 100
     C5 = sound.Sound(duration=1, pitch="C5", volume=volume)
     C6 = sound.Sound(duration=1, pitch="E5", volume=volume)
@@ -90,6 +117,7 @@ def main():
     print("Done waiting.")
 
     try:
+        # Wait for user to press STOP_SENSOR to begin operation
         while not STOP_SENSOR.is_pressed():
             sleep(0.01)
 
@@ -98,7 +126,10 @@ def main():
 
         colour = "UNKNOWN"
         has_started = False
-        while not STOP_SENSOR.is_pressed():  # exit when stop button is pressed
+
+        # Main loop: runs until stop sensor is pressed again
+        while not STOP_SENSOR.is_pressed():
+            # Toggle motor rotation on drum touch
             if DRUMB_SENSOR.is_pressed():
                 if has_started:
                     MOTOR.set_power(0)
@@ -108,9 +139,8 @@ def main():
                     has_started = True
                 sleep(0.5)
 
+            # Detect color and play corresponding note
             colour = get_colour(COLOR_SENSOR)
-
-            # play sound based on colour
             if colour == "RED":
                 C5.play()
                 C5.wait_done()
